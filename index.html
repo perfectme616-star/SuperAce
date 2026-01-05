@@ -1,68 +1,259 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Ace - Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>MegaBet Final Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg: #051a15; --gold: #ffcc00; --card-bg: #1a2a25; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Arial', sans-serif; user-select: none; }
-        #game-container { padding: 20px; text-align: center; }
-        .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
-        .card { background: var(--card-bg); height: 120px; border-radius: 8px; border: 1px solid var(--gold); }
-        .btn-spin { background: var(--gold); border: none; padding: 15px 40px; font-size: 18px; font-weight: bold; border-radius: 30px; margin-top: 30px; cursor: pointer; }
-        /* সুরক্ষা লেয়ারের জন্য নোটিফিকেশন স্টাইল */
-        #secure-msg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; font-size: 20px; color: red; }
+        :root { --bg: #051a15; --gold: #ffcc00; --card: #0b2e26; --border: #1a3c34; --text-m: #8ca39e; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        .hidden { display: none !important; }
+
+        /* --- Header --- */
+        .header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; background: #041410; border-bottom: 2px solid var(--gold); }
+        .bal-badge { background: #000; border: 1.5px solid var(--gold); padding: 5px 12px; border-radius: 20px; color: var(--gold); font-weight: bold; }
+
+        /* --- Login Page --- */
+        #loginPage { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        /* --- Win Zone (উপরের ফাঁকা জায়গায়) --- */
+        #winNote { 
+            position: absolute; top: 125px; left: 50%; transform: translateX(-50%); 
+            z-index: 9000; text-align: center; display: none; width: 100%; pointer-events: none;
+        }
+        .win-text { color: #00ff00; font-size: 32px; font-weight: 900; text-shadow: 0 0 15px rgba(0,255,0,0.5); margin: 0; }
+        .combo-text { color: var(--gold); font-size: 16px; font-weight: bold; text-transform: uppercase; }
+
+        /* --- Multiplier Tracker --- */
+        .multi-tracker { display: flex; justify-content: center; gap: 8px; background: #000; padding: 12px; border-bottom: 1px solid var(--border); }
+        .step { padding: 4px 10px; border-radius: 10px; font-size: 12px; border: 1px solid #333; color: #555; }
+        .step.active { background: var(--gold); color: #000; border-color: #fff; font-weight: bold; box-shadow: 0 0 10px var(--gold); }
+
+        /* --- UI Pages --- */
+        .page { padding: 15px; height: calc(100vh - 130px); overflow-y: auto; }
+        .slider { width: 100%; height: 120px; background: linear-gradient(45deg, #0b2e26, #1a3c34); border-radius: 12px; border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .game-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); text-align: center; padding: 20px 0; }
+        
+        /* --- Game Board --- */
+        #gameWindow { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; }
+        .grid-vampire { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 92vw; margin: auto; }
+        .grid-crystal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 94vw; margin: auto; }
+        .slot { aspect-ratio: 1; background: #0d2b24; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: 1px solid #1a3c34; font-size: 18px; }
+        .slot-v { background: #1a0a0a; border-color: #4a0000; font-size: 32px; }
+        .explode { animation: burst 0.4s forwards; }
+        @keyframes burst { 0% { transform: scale(1); filter: brightness(2); } 100% { transform: scale(0); opacity: 0; } }
+
+        /* --- Input & Buttons --- */
+        input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: gold; border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; }
+        .btn-action { width: 100%; padding: 15px; background: var(--gold); border: none; border-radius: 10px; font-weight: bold; font-size: 18px; color: #000; }
+
+        /* --- Nav --- */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: #041410; display: flex; border-top: 1.5px solid var(--border); }
+        .nav-item { flex: 1; text-align: center; padding-top: 15px; color: var(--text-m); font-size: 11px; }
+        .nav-item.active { color: var(--gold); }
     </style>
 </head>
-<body oncontextmenu="return false;"> <div id="secure-msg">সুরক্ষার কারণে এই পেজে রাইট ক্লিক বা ইনস্পেক্ট করা নিষেধ।</div>
+<body>
 
-    <div id="game-container">
-        <h1 style="color: var(--gold);">SUPER ACE 🎰</h1>
-        <div class="card-grid">
-            <div class="card"></div><div class="card"></div><div class="card"></div>
+    <div id="loginPage">
+        <div style="width:100%; max-width:300px; text-align:center;">
+            <h1 style="color:gold;">MegaBet</h1>
+            <input type="text" id="uName" placeholder="Username">
+            <input type="password" id="uPass" placeholder="Password">
+            <button class="btn-action" onclick="login()">LOGIN</button>
         </div>
-        <button class="btn-spin" onclick="playGame()">SPIN NOW</button>
-        <p id="status-text">আপনার ভাগ্য পরীক্ষা করুন!</p>
     </div>
 
-    <script>
-        /* -------------------------------------------
-           সুরক্ষা লেয়ার (Obfuscation Helper)
-           ------------------------------------------- */
-        
-        // কিবোর্ড শর্টকাট বন্ধ (F12, Ctrl+U, Ctrl+Shift+I)
-        document.onkeydown = function(e) {
-            if (e.keyCode == 123 || (e.ctrlKey && (e.keyCode == 'U'.charCodeAt(0) || e.shiftKey && e.keyCode == 'I'.charCodeAt(0)))) {
-                document.getElementById('secure-msg').style.display = 'flex';
-                setTimeout(() => { document.getElementById('secure-msg').style.display = 'none'; }, 2000);
-                return false;
-            }
-        };
+    <div id="mainContent" class="hidden">
+        <div class="header">
+            <div style="font-weight:bold; color:var(--gold); font-size:22px;" onclick="showPage('home')">MegaBet</div>
+            <div class="bal-badge">৳ <span id="mainBal">13425.00</span></div>
+        </div>
 
-        /* -------------------------------------------
-           গেমের আসল লজিক (এনক্রিপ্টেড স্টাইল)
-           ------------------------------------------- */
-        function playGame() {
-            const status = document.getElementById('status-text');
-            status.innerText = "ঘুরছে...";
-            
-            // আপনার আগের গেমের লজিক এখানে কাজ করবে
-            setTimeout(() => {
-                const win = Math.random() > 0.7; // ৩০% জয়ের সুযোগ
-                if(win) {
-                    status.innerHTML = "<span style='color:lime'>আপনি জিতেছেন! 💰</span>";
-                } else {
-                    status.innerText = "আবার চেষ্টা করুন!";
-                }
-            }, 1000);
+        <div id="homePage" class="page">
+            <div class="slider"><h3>WIN BIG COMBO!</h3></div>
+            <div class="game-grid">
+                <div class="game-card" onclick="openGame('crystal')"><i class="fas fa-gem" style="font-size:30px; color:cyan;"></i><p>CRYSTAL</p></div>
+                <div class="game-card" onclick="openGame('vampire')"><i class="fas fa-ghost" style="font-size:30px; color:red;"></i><p>VAMPIRE</p></div>
+            </div>
+        </div>
+
+        <div id="depositPage" class="page hidden">
+            <div style="background:var(--card); padding:20px; border-radius:12px; border:1px solid gold;">
+                <h4>DEPOSIT</h4>
+                <input type="number" placeholder="Amount">
+                <button class="btn-action">SEND REQUEST</button>
+            </div>
+        </div>
+
+        <div id="withdrawPage" class="page hidden">
+            <div style="background:var(--card); padding:20px; border-radius:12px; border:1px solid #ff4444;">
+                <h4>WITHDRAW</h4>
+                <input type="number" placeholder="Amount">
+                <button class="btn-action" style="background:#ff4444; color:white;">WITHDRAW</button>
+            </div>
+        </div>
+
+        <div id="profilePage" class="page hidden">
+            <div style="text-align:center; padding:30px; background:var(--card); border-radius:15px;">
+                <div style="width:60px; height:60px; background:gold; border-radius:50%; margin:auto;"></div>
+                <h2>USER: 885210</h2>
+                <p>Balance: ৳ <span id="profBal">13425.00</span></p>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showPage('home')"><i class="fas fa-home"></i><br>Home</div>
+            <div class="nav-item" onclick="showPage('deposit')"><i class="fas fa-plus-circle"></i><br>Deposit</div>
+            <div class="nav-item" onclick="showPage('withdraw')"><i class="fas fa-minus-circle"></i><br>Withdraw</div>
+            <div class="nav-item" onclick="showPage('profile')"><i class="fas fa-user"></i><br>Profile</div>
+        </div>
+    </div>
+
+    <div id="gameWindow">
+        <div class="header" style="background:transparent; border:none;">
+            <i class="fas fa-arrow-left" onclick="closeGame()" style="font-size:20px;"></i>
+            <span id="gTitle" style="color:gold; font-weight:bold;">GAME</span>
+            <div class="bal-badge">৳ <span id="gameBal">13425.00</span></div>
+        </div>
+
+        <div class="multi-tracker">
+            <div class="step active" id="m1">x1</div>
+            <div class="step" id="m2">x2</div>
+            <div class="step" id="m3">x3</div>
+            <div class="step" id="m5">x5</div>
+            <div class="step" id="m10">x10</div>
+        </div>
+
+        <div id="winNote">
+            <div class="combo-text" id="winLabel">COMBO WIN!</div>
+            <div class="win-text" id="winAmt">৳ 0.00</div>
+        </div>
+
+        <div style="flex-grow:1; display:flex; align-items:center;"><div id="board"></div></div>
+
+        <div class="footer-bet">
+            <input type="number" id="bet" value="100" style="text-align:center; font-size:20px;">
+            <button class="btn-action" id="spinBtn" onclick="spin()">SPIN</button>
+        </div>
+    </div>
+
+<script>
+    let balance = 13425.00;
+    let mode = '';
+    let comboCount = 0;
+    const crySyms = ['💎','🍎','⭐','🍀','🔔','🍇','🍍','🍒']; 
+    const vamSyms = ['🧛','🦇','💀','🍷','⚰️','🗡️','🕯️','🐺','🌙']; 
+
+    function login() {
+        if(document.getElementById('uName').value !== "" && document.getElementById('uPass').value !== "") {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+        }
+    }
+
+    function showPage(p) {
+        document.querySelectorAll('.page').forEach(pg => pg.classList.add('hidden'));
+        document.getElementById(p + 'Page').classList.remove('hidden');
+        document.querySelectorAll('.nav-item').forEach(it => it.classList.remove('active'));
+    }
+
+    function openGame(m) {
+        mode = m;
+        document.getElementById('gameWindow').style.display = 'flex';
+        document.getElementById('gTitle').innerText = m.toUpperCase();
+        comboCount = 0; updateMultiUI(); drawBoard();
+    }
+    function closeGame() { document.getElementById('gameWindow').style.display = 'none'; }
+
+    function updateMultiUI() {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        const ids = ['m1','m2','m3','m5','m10'];
+        document.getElementById(ids[Math.min(comboCount, 4)]).classList.add('active');
+    }
+
+    function drawBoard() {
+        const b = document.getElementById('board'); b.innerHTML = '';
+        const size = (mode === 'crystal' ? 49 : 25);
+        b.className = (mode === 'crystal' ? 'grid-crystal' : 'grid-vampire');
+        for(let i=0; i<size; i++) {
+            let d = document.createElement('div');
+            d.className = (mode === 'crystal' ? 'slot' : 'slot slot-v');
+            d.innerText = (mode === 'crystal' ? crySyms : vamSyms)[Math.floor(Math.random() * 8)];
+            b.appendChild(d);
+        }
+    }
+
+    async function spin() {
+        const stake = parseFloat(document.getElementById('bet').value);
+        if(stake > balance) return alert("Low Balance!");
+        document.getElementById('spinBtn').disabled = true;
+        balance -= stake; comboCount = 0; updateMultiUI(); updateUI(); drawBoard();
+        await new Promise(r => setTimeout(r, 600));
+        processMatches(stake);
+    }
+
+    async function processMatches(stake) {
+        let slots = document.querySelectorAll('.slot');
+        let cols = (mode === 'crystal' ? 7 : 5);
+        let rows = (mode === 'crystal' ? 7 : 5);
+        let winIndices = new Set();
+
+        for (let i = 0; i < slots.length; i++) {
+            if (i % cols < cols - 2 && slots[i].innerText !== "" && slots[i].innerText === slots[i+1].innerText && slots[i].innerText === slots[i+2].innerText) {
+                winIndices.add(i); winIndices.add(i+1); winIndices.add(i+2);
+            }
+            if (i < cols * (rows - 2) && slots[i].innerText !== "" && slots[i].innerText === slots[i+cols].innerText && slots[i].innerText === slots[i+(cols*2)].innerText) {
+                winIndices.add(i); winIndices.add(i+cols); winIndices.add(i+(cols*2));
+            }
         }
 
-        // কনসোল পরিষ্কার রাখা
-        setInterval(() => {
-            console.clear();
-            console.log("%cএই সিস্টেমটি সুরক্ষিত।", "color: red; font-size: 20px; font-weight: bold;");
-        }, 1000);
-    </script>
+        if (winIndices.size > 0) {
+            winIndices.forEach(idx => slots[idx].classList.add('explode'));
+            let mults = [1, 2, 3, 5, 10];
+            let currentM = mults[Math.min(comboCount, 4)];
+            let winVal = stake * (winIndices.size * 0.4) * currentM;
+            balance += winVal;
+
+            const note = document.getElementById('winNote');
+            document.getElementById('winLabel').innerText = currentM + "X COMBO WIN!";
+            document.getElementById('winAmt').innerText = "৳ " + winVal.toFixed(2);
+            note.style.display = 'block';
+
+            comboCount++; updateMultiUI();
+            await new Promise(r => setTimeout(r, 1500)); // ১.৫ সেকেন্ড উইন দেখা যাবে
+            note.style.display = 'none';
+
+            winIndices.forEach(idx => slots[idx].innerText = "");
+            for (let c = 0; c < cols; c++) {
+                for (let r = rows - 1; r >= 0; r--) {
+                    let idx = r * cols + c;
+                    if (slots[idx].innerText === "") {
+                        for (let k = r - 1; k >= 0; k--) {
+                            let aboveIdx = k * cols + c;
+                            if (slots[aboveIdx].innerText !== "") {
+                                slots[idx].innerText = slots[aboveIdx].innerText;
+                                slots[aboveIdx].innerText = ""; break;
+                            }
+                        }
+                    }
+                    if (slots[idx].innerText === "") slots[idx].innerText = (mode === 'crystal' ? crySyms : vamSyms)[Math.floor(Math.random()*8)];
+                }
+            }
+            slots.forEach(s => s.classList.remove('explode'));
+            updateUI(); setTimeout(() => processMatches(stake), 600);
+        } else {
+            document.getElementById('spinBtn').disabled = false;
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('mainBal').innerText = balance.toFixed(2);
+        document.getElementById('gameBal').innerText = balance.toFixed(2);
+        document.getElementById('profBal').innerText = balance.toFixed(2);
+    }
+</script>
 </body>
 </html>
